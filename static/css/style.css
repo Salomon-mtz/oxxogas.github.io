@@ -1,0 +1,19 @@
+body{
+    font-family: "Poppins";
+}
+
+nav{
+    background-color: #FCC525;
+    color: white;
+}
+
+.container{
+    margin: 0 auto;
+    margin-bottom: 5rem;
+    margin-top: 5rem;
+}
+
+.image-container{
+    margin-bottom: 5rem;
+}
+

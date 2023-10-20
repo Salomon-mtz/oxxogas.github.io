@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Compra de cliente</title>
+    <!-- Agrega los enlaces a los estilos de Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='imagenes/favicon2.png') }}"
+      type="image/x-icon"
+    />
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+    <div class="container">
+      <div class="text-center image-container">
+        <img
+          src="{{ url_for('static', filename='imagenes/logo.png') }}"
+          alt="Imagen 1"
+        />
+      </div>
+
+      <h2 class="text-center mt-4">Registro Compra de Gasolina</h2>
+
+      <form action="/submit" method="post">
+        <div class="form-group">
+          <label for="busqueda">Búsqueda de Placa:</label>
+          <input
+            type="search"
+            class="form-control"
+            id="busqueda"
+            name="busqueda"
+            style="border-radius: 1rem"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="monto">Monto:</label>
+          <input
+            type="number"
+            class="form-control"
+            id="monto"
+            name="monto"
+            style="border-radius: 1rem"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="litros">Litros:</label>
+          <input
+            type="number"
+            class="form-control"
+            id="litros"
+            name="litros"
+            style="border-radius: 1rem"
+            required
+          />
+        </div>
+
+        <div style="justify-content: center; display: flex; margin-top: 3rem">
+          <button
+            type="submit"
+            class="btn btn-danger btn-block"
+            style="border-radius: 1rem"
+          >
+            Registrar Compra
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Agrega los enlaces a los scripts de Bootstrap JS (opcional) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>
