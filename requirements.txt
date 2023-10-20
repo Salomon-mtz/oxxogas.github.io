@@ -40,6 +40,7 @@ Flask-Login
 fonttools
 gcloud
 googleapis-common-protos
+gunicorn
 httpie
 httplib2
 idna
