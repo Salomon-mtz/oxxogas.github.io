@@ -1,0 +1,12 @@
+oxxogas_high = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.us-phoenix-1.oraclecloud.com))(connect_data=(service_name=g54fbfa8ba7c8ac_oxxogas_high.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+oxxogas_low = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.us-phoenix-1.oraclecloud.com))(connect_data=(service_name=g54fbfa8ba7c8ac_oxxogas_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+oxxogas_medium = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.us-phoenix-1.oraclecloud.com))(connect_data=(service_name=g54fbfa8ba7c8ac_oxxogas_medium.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+oxxogas_tp = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.us-phoenix-1.oraclecloud.com))(connect_data=(service_name=g54fbfa8ba7c8ac_oxxogas_tp.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+oxxogas_tpurgent = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.us-phoenix-1.oraclecloud.com))(connect_data=(service_name=g54fbfa8ba7c8ac_oxxogas_tpurgent.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+
+

@@ -2,10 +2,10 @@
 <html>
   <head>
     <title>Compra de cliente</title>
-    <!-- Agrega los enlaces a los estilos de Bootstrap CSS -->
+    <!-- Add the link to Bootstrap CSS for mobile -->
     <link
       rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
     />
     <link
       rel="stylesheet"
@@ -16,6 +16,7 @@
       href="{{ url_for('static', filename='imagenes/favicon2.png') }}"
       type="image/x-icon"
     />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
     {% include 'navbar.html' %}
@@ -24,6 +25,7 @@
         <img
           src="{{ url_for('static', filename='imagenes/logo.png') }}"
           alt="Imagen 1"
+          style="max-width: 100%"
         />
       </div>
 
@@ -37,7 +39,6 @@
             class="form-control"
             id="busqueda"
             name="busqueda"
-            style="border-radius: 1rem"
             required
           />
         </div>
@@ -49,7 +50,6 @@
             class="form-control"
             id="monto"
             name="monto"
-            style="border-radius: 1rem"
             required
           />
         </div>
@@ -61,26 +61,24 @@
             class="form-control"
             id="litros"
             name="litros"
-            style="border-radius: 1rem"
             required
           />
         </div>
 
-        <div style="justify-content: center; display: flex; margin-top: 3rem">
-          <button
-            type="submit"
-            class="btn btn-danger btn-block"
-            style="border-radius: 1rem"
-          >
+        <div style="text-align: center; margin-top: 2rem; margin-bottom: 2rem">
+          <button type="submit" class="btn btn-danger btn-block">
             Registrar Compra
           </button>
         </div>
       </form>
     </div>
+    <footer>
+      <p>Oxxo Gas Rewards</p>
+    </footer>
 
-    <!-- Agrega los enlaces a los scripts de Bootstrap JS (opcional) -->
+    <!-- Add the links to the scripts of Bootstrap JS for mobile (optional) -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   </body>
 </html>
