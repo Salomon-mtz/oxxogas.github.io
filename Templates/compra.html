@@ -34,13 +34,24 @@
       <form action="/submit" method="post">
         <div class="form-group">
           <label for="busqueda">Búsqueda de Placa:</label>
-          <input
-            type="search"
-            class="form-control"
-            id="busqueda"
-            name="busqueda"
-            required
-          />
+          <div class="input-group">
+            <input
+              type="search"
+              class="form-control"
+              id="busqueda"
+              name="busqueda"
+              required
+            />
+            <div class="input-group-append">
+              <button
+                class="btn btn-outline-danger"
+                type="button"
+                id="searchButton"
+              >
+                Buscar
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">

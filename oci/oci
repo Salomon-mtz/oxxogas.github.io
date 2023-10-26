@@ -1,0 +1,6 @@
+[DEFAULT]
+user=ocid1.user.oc1..aaaaaaaa7leepenqacgr5pyda67hucpsho6of2dkxd6k25k4s6si7qz65t4a
+fingerprint=0c:85:ac:de:68:90:70:3d:56:19:10:ee:3f:47:76:ec
+tenancy=ocid1.tenancy.oc1..aaaaaaaas244yut7vrorqgsz4jf3vs5dd7nl7tlcreo5bhuc52ddowy6q5mq
+region=us-sanjose-1
+key_file=oci/a01660337@tec.mx_2023-10-05T17_38_11.533Z.pem
