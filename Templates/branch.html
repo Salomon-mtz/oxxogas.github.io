@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sucursales</title>
+    <!-- Add Bootstrap CSS link -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+    <div class="container">
+      <h1>Sucursales Oxxo Gas</h1>
+      <table class="table table-striped">
+        <thead
+          class="thead-danger"
+          style="background-color: #dc3444; color: white"
+        >
+          <tr>
+            <th>ID</th>
+            <th>Sucursal</th>
+            <!-- Add more table headers for other columns as needed -->
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in data %}
+          <tr>
+            <td>{{ row.id }}</td>
+            <td>{{ row.branch_name }}</td>
+            <!-- Add more table cells for other columns as needed -->
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <footer>
+      <p>Oxxo Gas Rewards</p>
+    </footer>
+
+    <!-- Add Bootstrap JavaScript and jQuery scripts if needed -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>

@@ -5,6 +5,7 @@ body{
 nav{
     background-color: #FCC525;
     color: white;
+    margin-bottom: 2rem;
 }
 
 .image-container{
@@ -20,4 +21,13 @@ footer{
 
 h2{
     margin-bottom: 1.5rem;
+}
+
+h1{
+    text-align: center;
+}
+
+video{
+    border: 2px solid #FCC525;
+    border-radius: 2rem;
 }
