@@ -25,7 +25,6 @@ postgrest
 py
 pycparser
 pydantic
-pydantic_core
 pyOpenSSL
 pytest
 python-dateutil
