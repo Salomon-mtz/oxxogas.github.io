@@ -11,14 +11,17 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/style.css') }}"
     />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='imagenes/favicon2.png') }}"
+      type="image/x-icon"
+    />
     <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, shrink-to-fit=no"
-  />
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
 
     <style>
-
-
       .pagination a,
       .pagination span {
         display: inline-block;
@@ -71,7 +74,7 @@
         </table>
       </div>
     </div>
-    <div class="pagination">
+    <div class="pagination" style="justify-content: center">
       <a href="{{ url_for('datos', page=1) }}">Primero</a>
       {% if current_page > 1 %}
       <a href="{{ url_for('datos', page=current_page-1) }}">Anterior</a>
