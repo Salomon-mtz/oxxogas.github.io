@@ -33,7 +33,6 @@ requests
 rfc3986
 six
 sniffio
-storage3
 StrEnum
 supabase
 supabase-py
