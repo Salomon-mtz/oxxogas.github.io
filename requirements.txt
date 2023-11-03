@@ -1,14 +1,4 @@
-anyio
-attrs
-blinker
-certifi
-cffi
-chardet
-circuitbreaker
-click
-cryptography
-dataclasses
-deprecation
+
 Flask
 gunicorn
 h11
@@ -20,8 +10,6 @@ itsdangerous
 Jinja2
 MarkupSafe
 oci
-packaging
-pluggy
 postgrest
 py
 pycparser
@@ -31,12 +19,6 @@ pytest
 python-dateutil
 pytz
 requests
-rfc3986
-six
-sniffio
-StrEnum
 toml
-typing_extensions
 urllib3
 websockets
-Werkzeug
