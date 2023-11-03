@@ -9,6 +9,7 @@ cryptography
 deprecation
 Flask
 gotrue
+gunicorn
 h11
 httpcore
 httpx
