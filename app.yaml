@@ -1,4 +1,4 @@
-runtime: python311
+runtime: python3.11.6
 env: flex
 entrypoint: gunicorn -b :$PORT main:app
 
