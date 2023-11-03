@@ -34,7 +34,6 @@ rfc3986
 six
 sniffio
 StrEnum
-supabase
 supabase-py
 supafunc
 toml
