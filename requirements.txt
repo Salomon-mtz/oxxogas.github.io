@@ -22,7 +22,6 @@ oci
 packaging
 pluggy
 postgrest
-postgrest-py
 py
 pycparser
 pydantic
