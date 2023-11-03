@@ -29,8 +29,6 @@ pyOpenSSL
 pytest
 python-dateutil
 pytz
-realtime
-realtime-py
 requests
 rfc3986
 six
