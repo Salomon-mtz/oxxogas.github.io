@@ -10,7 +10,6 @@ cryptography
 dataclasses
 deprecation
 Flask
-gotrue
 h11
 httpcore
 httpx
