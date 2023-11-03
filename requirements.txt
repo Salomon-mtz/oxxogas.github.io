@@ -34,7 +34,6 @@ rfc3986
 six
 sniffio
 StrEnum
-supafunc
 toml
 typing_extensions
 urllib3
