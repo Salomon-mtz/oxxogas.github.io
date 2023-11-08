@@ -65,7 +65,7 @@ key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 supabase: Client = create_client(url, key)
 
 
-@app.route("/oci", methods=["GET", "POST"])
+@app.route("/admin", methods=["GET", "POST"])
 def ociPlate():
     if request.method == "POST":
         # Handle the photo input if the request is POST

@@ -65,6 +65,7 @@
             id="liters"
             name="liters"
             placeholder="Litros"
+            step="0.01"
             value="1"
           />
         </div>
@@ -77,6 +78,7 @@
             id="amount"
             name="amount"
             placeholder="Monto"
+            step="0.01"
             value="{{ fuel_price }}"
           />
         </div>
@@ -116,7 +118,7 @@
       document.addEventListener("DOMContentLoaded", function() {
         // Get references to the input elements
         const litersInput = document.getElementById("liters");
-        const amountInput = document.getElementById("monto");
+        const amountInput = document.getElementById("amount");
 
         // Add event listeners to the input elements
         litersInput.addEventListener("input", calculatePriceFromLiters);
