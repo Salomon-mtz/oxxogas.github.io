@@ -2,6 +2,7 @@ import json
 import os
 from flask import (
     Flask,
+    jsonify,
     render_template,
     request,
     send_from_directory,
@@ -17,6 +18,7 @@ from supabase import create_client, Client
 from io import BytesIO
 import qrcode
 from gotrue.types import User
+import stripe
 
 
 app = Flask(__name__)
@@ -63,6 +65,8 @@ ai_vision_client = oci.ai_vision.AIServiceVisionClient(config=config)
 url: str = "https://rafdgizljnzrnmfguogm.supabase.co"
 key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhZmRnaXpsam56cm5tZmd1b2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTgzNjU0OTAsImV4cCI6MjAxMzk0MTQ5MH0.7_0lzFml9UgLJ6m4nDCs3IhYam1ofa0FoCSYkpTm2VM"
 supabase: Client = create_client(url, key)
+
+stripe.api_key = "sk_test_51O9tjGJJgeLIT5WE5vjn0nzYZaCIqb7mYxjS7Mzu3yEpYcyWV47N5DrLDTLGjXi9OQwpEbK7UtIPo5npy0pXSLQj00xGEG2ZhI"
 
 
 @app.route("/admin", methods=["GET", "POST"])
@@ -343,12 +347,19 @@ def master():
         supabase: Client = create_client(url, key)
         response = supabase.table("BRANCH").select("*").execute()
         fuel = supabase.table("FUEL").select("*").execute()
-        reciepts = supabase.table("PURCHASE_HISTORY").select("*").eq("plateid", session["user_info"]["plateid"]).execute()
+        reciepts = (
+            supabase.table("PURCHASE_HISTORY")
+            .select("*")
+            .eq("plateid", session["user_info"]["plateid"])
+            .execute()
+        )
         data = response.data
         fuel_data = fuel.data
         reciepts_data = reciepts.data
         print(fuel_data)
-        return render_template("master.html", data=data, fuel_data=fuel_data, reciepts_data=reciepts_data)
+        return render_template(
+            "master.html", data=data, fuel_data=fuel_data, reciepts_data=reciepts_data
+        )
     else:
         return redirect(url_for("index"))
 
@@ -442,7 +453,9 @@ def process_purchase():
                 if payment_method == "efectivo":
                     return redirect(url_for("success"))
                 elif payment_method == "tarjeta":
-                    return redirect(url_for("stripe.html"))
+                    return render_template(
+                        "stripe_payment.html", amount=amount, plateid=plateid
+                    )
             except postgrest.exceptions.APIError as e:
                 if "duplicate key value violates unique constraint" in e.message:
                     # Duplicate key violation error
@@ -463,6 +476,33 @@ def process_purchase():
 @app.route("/success")
 def success():
     return render_template("success.html")
+
+
+@app.route("/charge", methods=["POST"])
+def charge():
+    if request.method == "POST":
+        # Obtén los datos del formulario
+        amount = request.form.get("amount")
+        plateid = request.form.get("plateid")
+        print(amount)
+
+        try:
+            # Crea un PaymentIntent en Stripe
+            payment_intent = stripe.PaymentIntent.create(
+                amount=amount,
+                currency="mxn",
+                description="Compra de gasolina",
+                metadata={"plateid": plateid},
+            )
+            print(payment_intent.client_secret)
+
+            # Retorna el client secret para confirmar el pago en el lado del cliente
+            return jsonify({"client_secret": payment_intent.client_secret})
+
+        except Exception as e:
+            return jsonify({"error": str(e)})
+
+    return redirect(url_for("process_purchase"))
 
 
 if __name__ == "__main__":
