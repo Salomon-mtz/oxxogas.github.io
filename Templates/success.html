@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Inicio de sesión</title>
+    <!-- Add the link to Bootstrap CSS for mobile -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='imagenes/favicon.png') }}"
+      type="image/x-icon"
+    />
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container text-center">
+      <div class="image-container">
+        <img
+          src="{{ url_for('static', filename='imagenes/logo.png') }}"
+          alt="Imagen 1"
+          style="max-width: 50%"
+        />
+      </div>
+      <h2 style="text-align: center;">Compra exitosa</h2>
+      <p>Gracias por confiar en Oxxo Gas!!</p>
+      <img
+        src="{{ url_for('static', filename='imagenes/success.gif') }}"
+        alt="Imagen 1"
+        style="max-width: 30%; margin-top: 2rem;"
+      />
+      <div class="mt-5">
+        <a href="/main" class="btn btn-danger"
+          >Regresar al inicio</a
+        >
+    </div>
+
+    <!-- Add the link to Bootstrap JS for mobile (optional) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>

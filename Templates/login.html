@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Inicio de sesión</title>
+    <!-- Add the link to Bootstrap CSS for mobile -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='imagenes/favicon.png') }}"
+      type="image/x-icon"
+    />
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="container">
+      <div class="text-center image-container">
+        <img
+          src="{{ url_for('static', filename='imagenes/logo.png') }}"
+          alt="Imagen 1"
+          style="max-width: 100%"
+        />
+      </div>
+      <h2 style="text-align: center; margin-top: 5rem">Inicio de sesión para Trabajadores Oxxo Gas</h2>
+      {% if message == "Usuario o contraseña incorrectos" %}
+      <div class="alert alert-danger alert-dismissible" role="alert">
+        {{ message }}
+        <button
+          type="button"
+          class="close"
+          data-dismiss="alert"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% elif message == "Inicio exitoso!" %}
+      <div class="alert alert-success alert-dismissible" role="alert">
+        {{ message }}
+        <button
+          type="button"
+          class="close"
+          data-dismiss="alert"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% endif %}
+
+      <form action="/login" method="post">
+        <div class="form-group">
+          <label for="username">Nombre de usuario:</label>
+          <input
+            type="text"
+            class="form-control"
+            id="username"
+            name="username"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña:</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-danger btn-block">
+          Iniciar sesión
+        </button>
+      </form>
+    </div>
+
+    <!-- Add the link to Bootstrap JS for mobile (optional) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>

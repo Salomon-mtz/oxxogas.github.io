@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Perfil</title>
+    <!-- Add Bootstrap CSS link -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='imagenes/favicon2.png') }}"
+      type="image/x-icon"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <style>
+      .back-btn {
+        margin-top: 20px;
+        color: #c82333;
+      }
+
+      .profile-info {
+        padding: 20px;
+        border-radius: 10px;
+      }
+
+      .qr-code {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+      }
+
+      h1 {
+        font-size: 30px;
+        margin-top: 20px;
+      }
+
+      h2 {
+        font-size: 18px;
+        margin-top: 10px;
+        color: #c82333;
+      }
+
+      .container {
+        margin-top: 20px;
+      }
+      p{
+        color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Back Button -->
+    <a href="/main" class="btn back-btn">< Atras</a>
+    <div class="container">
+      <h1 class="text-center">Perfil del Usuario</h1>
+      <div class="profile-info">
+        <!-- Display Client Information -->
+        <h2 class="mt-3">
+          Número de Placa del Coche: <br />
+          <p>{{ session['user_info']['plateid'] }}</p>
+        </h2>
+        <h2>
+          Nombre:
+          <p>{{ session['user_info']['first_name'] }}</p>
+        </h2>
+        <h2>
+          Apellido:
+          <p>{{ session['user_info']['last_name'] }}</p>
+        </h2>
+        <h2>
+          Correo:
+          <p>{{ session['user_info']['email'] }}</p>
+        </h2>
+        <h2>
+          Número de Teléfono:
+          <p>{{ session['user_info']['phone'] }}</p>
+        </h2>
+      </div>
+      <!-- QR Code -->
+      <div class="qr-code">
+        <!-- Add your QR code here, or generate it dynamically -->
+        <img
+          src="{{ url_for('send_qr_code', filename='plate_qr.png') }}"
+          alt="Código QR"
+        />
+      </div>
+    </div>
+
+    <!-- Add Bootstrap JavaScript and jQuery scripts if needed -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Formulario de Registro</title>
+    <!-- Add the link to Bootstrap CSS for mobile -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='imagenes/favicon.png') }}"
+      type="image/x-icon"
+    />
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+    <span style="position: absolute; right: 0; top: 0">
+      {% if message == "Usuario o contraseña incorrectos" %}
+      <div class="alert alert-danger alert-dismissible" role="alert">
+        {{ message }}
+        <button
+          type="button"
+          class="close"
+          data-dismiss="alert"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% elif message == "Inicio exitoso!" %}
+      <div class="alert alert-success alert-dismissible" role="alert">
+        {{ message }}
+        <button
+          type="button"
+          class="close"
+          data-dismiss="alert"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% endif %}
+    </span>
+    <span style="position: absolute; right: 0; top: 0">
+      {% if message == "Error al insertar datos" %}
+      <div class="alert alert-danger alert-dismissible" role="alert">
+        {{ message }}
+        <button
+          type="button"
+          class="close"
+          data-dismiss="alert"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% elif message == "Registro exitoso!" %}
+      <div class="alert alert-success alert-dismissible" role="alert">
+        {{ message }}
+        <button
+          type="button"
+          class="close"
+          data-dismiss="alert"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% elif message == "Este número de placa ya está registrado." %}
+      <div class="alert alert-warning alert-dismissible" role="alert">
+        {{ message }}
+        <button
+          type="button"
+          class="close"
+          data-dismiss="alert"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% endif %}
+    </span>
+    <div class="container">
+      <div class="text-center image-container">
+        <img
+          src="{{ url_for('static', filename='imagenes/logo.png') }}"
+          alt="Imagen 1"
+          style="max-width: 100%"
+        />
+      </div>
+
+      <h2 class="text-center mt-4">Registro Clientes Oxxo Gas</h2>
+
+      <form action="/submit" method="post">
+        <div class="form-group">
+          <label for="plateid">Número de Placa:</label>
+          <input
+            type="text"
+            class="form-control"
+            id="plateid"
+            name="plateid"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="first_name">Nombre del Cliente:</label>
+          <input
+            type="text"
+            class="form-control"
+            id="first_name"
+            name="first_name"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="last_name">Apellido del Cliente:</label>
+          <input
+            type="text"
+            class="form-control"
+            id="last_name"
+            name="last_name"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="sex">Sexo:</label>
+          <select class="form-control" id="sex" name="sex">
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+            <option value="NA">Otro</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="age">Edad:</label>
+          <input
+            type="number"
+            class="form-control"
+            id="age"
+            name="age"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Número de Teléfono:</label>
+          <input
+            type="tel"
+            class="form-control"
+            id="phone"
+            name="phone"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Correo Electrónico:</label>
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            name="email"
+            required
+          />
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem; margin-bottom: 2rem">
+          <button type="submit" class="btn btn-danger btn-block">
+            Agregar cliente
+          </button>
+        </div>
+      </form>
+    </div>
+    <footer>
+      <p>Oxxo Gas Rewards</p>
+    </footer>
+
+    <!-- Add the link to Bootstrap JS for mobile (optional) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>
