@@ -59,14 +59,14 @@ app.secret_key = os.urandom(24)
 
 # ADMIN OXXO GAS
 
-config = oci.config.from_file("/Users/salomon/Desktop/oxxoGas_app/oci/oci")
+config = oci.config.from_file("/Users/sofiadonlucas/Desktop/Visual/AI/oxxogas.github.io/oci/oci")
 ai_vision_client = oci.ai_vision.AIServiceVisionClient(config=config)
 
 url: str = "https://rafdgizljnzrnmfguogm.supabase.co"
 key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhZmRnaXpsam56cm5tZmd1b2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTgzNjU0OTAsImV4cCI6MjAxMzk0MTQ5MH0.7_0lzFml9UgLJ6m4nDCs3IhYam1ofa0FoCSYkpTm2VM"
 supabase: Client = create_client(url, key)
 
-stripe.api_key = "sk_test_51O9tjGJJgeLIT5WE5vjn0nzYZaCIqb7mYxjS7Mzu3yEpYcyWV47N5DrLDTLGjXi9OQwpEbK7UtIPo5npy0pXSLQj00xGEG2ZhI"
+stripe.api_key = 'sk_test_51O9sv3LQ2HnHuJ0nowuDvz7yRdH9rJSDZ8YcWxeKY10q5U2A3PSS0GT5QHzUkLEdowInigCkt63sb42vZmwMU9qv00BPoJGsXT'
 
 
 @app.route("/admin", methods=["GET", "POST"])
@@ -414,12 +414,13 @@ def buy():
     else:
         return redirect(url_for("index"))
 
-
+YOUR_DOMAIN = 'http://192.168.100.191' 
 @app.route("/process_purchase", methods=["POST"])
 def process_purchase():
     if "user_info" in session:
         message = None
         user_info = session["user_info"]
+        customer_email = user_info.get("email")
         if request.method == "POST":
             # Get form data
             amount = float(request.form.get("amount"))
@@ -443,19 +444,46 @@ def process_purchase():
 
             try:
                 # Insert the data into the Supabase table
+                '''
                 data, count = (
                     supabase.table("PURCHASE_HISTORY").insert([purchase_data]).execute()
-                )
+                )'''
 
                 # Data insertion successful
                 message = "Registro exitoso!"
                 print(message)
-                if payment_method == "efectivo":
+                if payment_method == "tarjeta":
+                    # Convertir el precio a un entero seguro para Stripe
+                    product_price = int(amount * 100)
+                    try:
+                        # Crear la sesión de pago con Stripe
+                        checkout_session = stripe.checkout.Session.create(
+                            payment_method_types=['card', 'oxxo'],
+                            line_items=[
+                                {
+                                    'price_data': {
+                                        'currency': 'mxn',
+                                        'unit_amount': product_price,
+                                        'product_data': {
+                                            'name': "Gasolina " + gas_type,
+                                            "description": "Cobro de gasolina solicitada",
+                                            'images': ['https://tu_imagen.jpg'],
+                                        },
+                                    },
+                                    'quantity': 1,
+                                },
+                            ],
+                            mode='payment',
+                            success_url=url_for('success', _external=True),
+                            #cancel_url=url_for('buy', _external=True),
+                            customer_email=customer_email,
+                        )
+                        return redirect(checkout_session.url, code=303)
+                    except Exception as e:
+                        return str(e)
+                elif payment_method == "efectivo":
+                    # Aquí tu lógica para el pago en efectivo...
                     return redirect(url_for("success"))
-                elif payment_method == "tarjeta":
-                    return render_template(
-                        "stripe_payment.html", amount=amount, plateid=plateid
-                    )
             except postgrest.exceptions.APIError as e:
                 if "duplicate key value violates unique constraint" in e.message:
                     # Duplicate key violation error
@@ -471,7 +499,6 @@ def process_purchase():
         return redirect(url_for("process_purchase"))
     else:
         return redirect(url_for("index"))
-
 
 @app.route("/success")
 def success():
