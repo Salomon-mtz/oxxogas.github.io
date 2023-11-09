@@ -59,14 +59,14 @@ app.secret_key = os.urandom(24)
 
 # ADMIN OXXO GAS
 
-config = oci.config.from_file("/Users/sofiadonlucas/Desktop/Visual/AI/oxxogas.github.io/oci/oci")
+config = oci.config.from_file("/Users/salomon/Desktop/oxxogas.github.io/oci/oci") #cambiar por tu path
 ai_vision_client = oci.ai_vision.AIServiceVisionClient(config=config)
 
 url: str = "https://rafdgizljnzrnmfguogm.supabase.co"
 key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhZmRnaXpsam56cm5tZmd1b2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTgzNjU0OTAsImV4cCI6MjAxMzk0MTQ5MH0.7_0lzFml9UgLJ6m4nDCs3IhYam1ofa0FoCSYkpTm2VM"
 supabase: Client = create_client(url, key)
 
-stripe.api_key = 'sk_test_51O9sv3LQ2HnHuJ0nowuDvz7yRdH9rJSDZ8YcWxeKY10q5U2A3PSS0GT5QHzUkLEdowInigCkt63sb42vZmwMU9qv00BPoJGsXT'
+stripe.api_key = 'sk_test_51O9tjGJJgeLIT5WE5vjn0nzYZaCIqb7mYxjS7Mzu3yEpYcyWV47N5DrLDTLGjXi9OQwpEbK7UtIPo5npy0pXSLQj00xGEG2ZhI'
 
 
 @app.route("/admin", methods=["GET", "POST"])
@@ -219,10 +219,18 @@ def login():
                 .eq("password", password)
                 .execute()
             )
+            
+            vendors_data = vendors.data
 
             # Check if a matching vendor was found
             if vendors.data and len(vendors.data) == 1:
                 # Successful login, show a success alert
+                session["vendor_info"] = {
+                "username": vendors_data[0]["username"],
+                "id": vendors_data[0]["id"],
+                "branch_id": vendors_data[0]["branch_id"],
+    
+            }
                 print("Login successful!", "success")
                 message = "Inicio exitoso!"
                 return render_template("register.html", message=message)
@@ -414,7 +422,6 @@ def buy():
     else:
         return redirect(url_for("index"))
 
-YOUR_DOMAIN = 'http://192.168.100.191' 
 @app.route("/process_purchase", methods=["POST"])
 def process_purchase():
     if "user_info" in session:
@@ -444,10 +451,10 @@ def process_purchase():
 
             try:
                 # Insert the data into the Supabase table
-                '''
+                
                 data, count = (
                     supabase.table("PURCHASE_HISTORY").insert([purchase_data]).execute()
-                )'''
+                )
 
                 # Data insertion successful
                 message = "Registro exitoso!"
@@ -467,14 +474,14 @@ def process_purchase():
                                         'product_data': {
                                             'name': "Gasolina " + gas_type,
                                             "description": "Cobro de gasolina solicitada",
-                                            'images': ['https://tu_imagen.jpg'],
+                                            'images': ['static/gas.jpg'],
                                         },
                                     },
                                     'quantity': 1,
                                 },
                             ],
                             mode='payment',
-                            success_url=url_for('success', _external=True),
+                            success_url=url_for('success_stripe',_external=True) + '?session_id={CHECKOUT_SESSION_ID}',
                             #cancel_url=url_for('buy', _external=True),
                             customer_email=customer_email,
                         )
@@ -504,32 +511,22 @@ def process_purchase():
 def success():
     return render_template("success.html")
 
+@app.route("/success_stripe", methods=["GET"])
+def success_stripe():
+    # Retrieve the Stripe session ID from the URL query parameters
+    session_id = request.args.get("session_id")
 
-@app.route("/charge", methods=["POST"])
-def charge():
-    if request.method == "POST":
-        # Obtén los datos del formulario
-        amount = request.form.get("amount")
-        plateid = request.form.get("plateid")
-        print(amount)
-
+    if session_id:
         try:
-            # Crea un PaymentIntent en Stripe
-            payment_intent = stripe.PaymentIntent.create(
-                amount=amount,
-                currency="mxn",
-                description="Compra de gasolina",
-                metadata={"plateid": plateid},
-            )
-            print(payment_intent.client_secret)
+            payment = stripe.checkout.Session.retrieve(session_id)
+            purchase_id = payment.payment_intent
+        except stripe.error.StripeError as e:
+            purchase_id = "Error retrieving payment"
+    else:
+        purchase_id = "Session ID not found"
 
-            # Retorna el client secret para confirmar el pago en el lado del cliente
-            return jsonify({"client_secret": payment_intent.client_secret})
+    return render_template("success_stripe.html", purchase_id=purchase_id)
 
-        except Exception as e:
-            return jsonify({"error": str(e)})
-
-    return redirect(url_for("process_purchase"))
 
 
 if __name__ == "__main__":
