@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Orden en Proceso</title>
+    <!-- Add Bootstrap CSS link -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='imagenes/favicon2.png') }}"
+      type="image/x-icon"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <style>
+      footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        padding: 10px 0;
+      }
+      h1 {
+        font-size: 60px;
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+    <div class="container mt-4">
+      <h1>Orden Activa</h1>
+      <div class="row">
+        <div class="">
+          <div class="row mt-3">
+            {% if purchase %}
+            <div class="col-lg-6 col-md-6">
+              <h2 style="font-size: 50px; color: #c82333">
+                {{ purchase.plateid }}
+              </h2>
+            </div>
+            <div class="col-lg-6 col-md-6" style="text-align: end">
+              <p class="" style="font-size: 24px; color: #fcc525">
+                # {{ purchase.id }}
+              </p>
+            </div>
+            <h2 class="" id="formatted-date">
+              Fecha: {{ purchase.created_at }}
+            </h2>
+            <br />
+            <h2 class="">Tipo de gasolina: {{ purchase.gas_type }}</h2>
+            <br />
+            <h2 class="">Monto: $ {{ purchase.amount }}</h2>
+            <br />
+            <h2 class="">Litros: {{ purchase.liters }} lts.</h2>
+            <br />
+            <h2 class="">Método de pago: {{ purchase.payment_method }}</h2>
+            <br />
+            <h2 class="">Sucursal: {{ purchase.branch }}</h2>
+            <br />
+            {% if purchase.status == True %}
+            <h2 class="">Status: Activo</h2>
+            <br />
+            {% endif %}
+            <!-- Add more fields as needed -->
+          </div>
+          {% else %}
+          <h2>No hay compras activas para este usuario</h2>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <footer class="text-center">
+      <p>Oxxo Gas Rewards</p>
+    </footer>
+
+    <!-- Add Bootstrap JavaScript and jQuery scripts if needed -->
+    <!-- Add JavaScript for formatting date -->
+    <!-- Add JavaScript for formatting date -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var dateElement = document.getElementById("formatted-date");
+        var rawDate = dateElement.innerHTML;
+
+        // Assuming rawDate is in the format 'YYYY-MM-DDTHH:mm:ss.sssZ'
+        var parts = rawDate.split("T");
+        var datePart = parts[0];
+        var timePart = parts[1].replace("Z", "");
+
+        var formattedDate = new Date(datePart + " " + timePart).toLocaleString(
+          "es-ES",
+          {
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            timeZone: "UTC", // Adjust the time zone as needed
+          }
+        );
+
+        dateElement.innerHTML = "Fecha: " + formattedDate;
+      });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>

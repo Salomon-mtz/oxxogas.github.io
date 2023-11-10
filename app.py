@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 from flask import (
@@ -69,7 +70,7 @@ supabase: Client = create_client(url, key)
 stripe.api_key = 'sk_test_51O9tjGJJgeLIT5WE5vjn0nzYZaCIqb7mYxjS7Mzu3yEpYcyWV47N5DrLDTLGjXi9OQwpEbK7UtIPo5npy0pXSLQj00xGEG2ZhI'
 
 
-@app.route("/admin", methods=["GET", "POST"])
+@app.route("/oci", methods=["GET", "POST"])
 def ociPlate():
     if request.method == "POST":
         # Handle the photo input if the request is POST
@@ -246,6 +247,31 @@ def login():
             return render_template("login.html", message=message)
 
     return render_template("login.html")
+
+
+@app.route('/purchases')
+def purchases():
+    # Replace 'YOUR_PLATE_ID' with the desired static plateid
+    plateid = 'B50ACE'
+
+    # Use the Supabase library syntax for the query
+    response = (
+        supabase.table("PURCHASE_HISTORY")
+        .select("*")
+        .eq("plateid", plateid)
+        .eq("status", True)
+        .execute()
+    )
+
+    # Check if there are any results
+    if len(response.data) > 0:
+        # Get the purchase data
+        purchase = response.data[0]
+        return render_template('purchase.html', purchase=purchase)
+    else:
+        # Handle the case when there are no results
+        return render_template('purchase.html')
+
 
 
 # CUSTOMER OXXO GAS
