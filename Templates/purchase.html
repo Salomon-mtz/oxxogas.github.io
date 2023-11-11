@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <title>Orden en Proceso</title>
-    <!-- Add Bootstrap CSS link -->
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
@@ -20,70 +19,70 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <style>
-      footer {
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-        padding: 10px 0;
-      }
-      h1 {
-        font-size: 60px;
-      }
-    </style>
   </head>
   <body>
     {% include 'navbar.html' %}
     <div class="container mt-4">
-      <h1>Orden Activa</h1>
-      <div class="row">
-        <div class="">
-          <div class="row mt-3">
-            {% if purchase %}
+      <h1 class="text-center">Orden Activa</h1>
+      <div class="row mt-5">
+        {% if purchase %}
+        <div class="col-md-12">
+          <div class="row">
             <div class="col-lg-6 col-md-6">
-              <h2 style="font-size: 50px; color: #c82333">
+              <h2 class="text-danger" style="font-size: 50px">
                 {{ purchase.plateid }}
               </h2>
             </div>
-            <div class="col-lg-6 col-md-6" style="text-align: end">
-              <p class="" style="font-size: 24px; color: #fcc525">
+            <div class="col-lg-6 col-md-6 text-right">
+              <p class="text-danger" style="font-size: 30px; font-weight: 500">
                 # {{ purchase.id }}
               </p>
             </div>
-            <h2 class="" id="formatted-date">
-              Fecha: {{ purchase.created_at }}
-            </h2>
-            <br />
-            <h2 class="">Tipo de gasolina: {{ purchase.gas_type }}</h2>
-            <br />
-            <h2 class="">Monto: $ {{ purchase.amount }}</h2>
-            <br />
-            <h2 class="">Litros: {{ purchase.liters }} lts.</h2>
-            <br />
-            <h2 class="">Método de pago: {{ purchase.payment_method }}</h2>
-            <br />
-            <h2 class="">Sucursal: {{ purchase.branch }}</h2>
-            <br />
-            {% if purchase.status == True %}
-            <h2 class="">Status: Activo</h2>
-            <br />
-            {% endif %}
-            <!-- Add more fields as needed -->
+            <div class="col-12 text-center" style="margin: 3rem 0 3rem 0">
+              <h2 class="" id="formatted-date">
+                Fecha: {{ purchase.created_at }}
+              </h2>
+
+              <h2>Tipo de gasolina: {{ purchase.gas_type }}</h2>
+              <h2>Monto: $ {{ purchase.amount }}</h2>
+              <h2>Litros: {{ purchase.liters }} lts.</h2>
+              <h2>Método de pago: {{ purchase.payment_method }}</h2>
+              <h2>Sucursal: {{ branch_title }}</h2>
+              {% if purchase.status == True %}
+              <h2>Status: Activo</h2>
+              {% endif %}
+              <form
+                action="/dispatch"
+                method="post"
+                class="row justify-content-center"
+                style="margin-top: 7rem"
+              >
+                <input
+                  type="hidden"
+                  name="purchase_id"
+                  id="purchase_id"
+                  value="{{ purchase.id }}"
+                />
+                <a href="/oci" class="btn btn-danger col-md-4 mx-4">
+                  Cancelar
+                </a>
+                <button type="submit" class="btn btn-warning col-md-4 mx-4">
+                  Despachar
+                </button>
+              </form>
+            </div>
           </div>
-          {% else %}
-          <h2>No hay compras activas para este usuario</h2>
-          {% endif %}
         </div>
+        {% else %}
+        <h2 class="text-center">No hay compras activas para este usuario</h2>
+        {% endif %}
       </div>
     </div>
 
-    <footer class="text-center">
+    <footer class="text-center fixed-bottom">
       <p>Oxxo Gas Rewards</p>
     </footer>
 
-    <!-- Add Bootstrap JavaScript and jQuery scripts if needed -->
-    <!-- Add JavaScript for formatting date -->
-    <!-- Add JavaScript for formatting date -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         var dateElement = document.getElementById("formatted-date");
@@ -114,5 +113,6 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='js/custom.js') }}"></script>
   </body>
 </html>

@@ -60,20 +60,21 @@ app.secret_key = os.urandom(24)
 
 # ADMIN OXXO GAS
 
-config = oci.config.from_file("/Users/salomon/Desktop/oxxogas.github.io/oci/oci") #cambiar por tu path
+config = oci.config.from_file(
+    "/Users/salomon/Desktop/oxxogas.github.io/oci/oci"
+)  # cambiar por tu path
 ai_vision_client = oci.ai_vision.AIServiceVisionClient(config=config)
 
 url: str = "https://rafdgizljnzrnmfguogm.supabase.co"
 key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhZmRnaXpsam56cm5tZmd1b2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTgzNjU0OTAsImV4cCI6MjAxMzk0MTQ5MH0.7_0lzFml9UgLJ6m4nDCs3IhYam1ofa0FoCSYkpTm2VM"
 supabase: Client = create_client(url, key)
 
-stripe.api_key = 'sk_test_51O9tjGJJgeLIT5WE5vjn0nzYZaCIqb7mYxjS7Mzu3yEpYcyWV47N5DrLDTLGjXi9OQwpEbK7UtIPo5npy0pXSLQj00xGEG2ZhI'
+stripe.api_key = "sk_test_51O9tjGJJgeLIT5WE5vjn0nzYZaCIqb7mYxjS7Mzu3yEpYcyWV47N5DrLDTLGjXi9OQwpEbK7UtIPo5npy0pXSLQj00xGEG2ZhI"
 
 
 @app.route("/oci", methods=["GET", "POST"])
 def ociPlate():
     if request.method == "POST":
-        # Handle the photo input if the request is POST
         photo_data = request.form.get("photo")
 
         # Remove the base64 image prefix if present
@@ -81,14 +82,12 @@ def ociPlate():
         if photo_data.startswith(prefix):
             photo_data = photo_data[len(prefix) :]
 
-        # Process the image using OCI AI Services and search for license plates
-        text_value = analyze_image(photo_data)
-        print(text_value)
+        # Process the image using OCI AI Services
+        plate_text = analyze_image(photo_data)
 
-        # Return the results to the user
-        return text_value  # Replace with your actual results
+        # Redirect to the purchases route with plate_text as a parameter
+        return redirect(url_for("purchases", plateid=plate_text))
 
-    # If the request is not POST, render the form template
     return render_template("oci.html")
 
 
@@ -220,18 +219,17 @@ def login():
                 .eq("password", password)
                 .execute()
             )
-            
+
             vendors_data = vendors.data
 
             # Check if a matching vendor was found
             if vendors.data and len(vendors.data) == 1:
                 # Successful login, show a success alert
                 session["vendor_info"] = {
-                "username": vendors_data[0]["username"],
-                "id": vendors_data[0]["id"],
-                "branch_id": vendors_data[0]["branch_id"],
-    
-            }
+                    "username": vendors_data[0]["username"],
+                    "id": vendors_data[0]["id"],
+                    "branch_id": vendors_data[0]["branch_id"],
+                }
                 print("Login successful!", "success")
                 message = "Inicio exitoso!"
                 return render_template("register.html", message=message)
@@ -249,12 +247,12 @@ def login():
     return render_template("login.html")
 
 
-@app.route('/purchases')
+@app.route("/purchases")
 def purchases():
-    # Replace 'YOUR_PLATE_ID' with the desired static plateid
-    plateid = 'B50ACE'
+    # Obtener el plateid del parámetro de consulta
+    plateid = request.args.get("plateid", "DEFAULT_PLATE_ID")
 
-    # Use the Supabase library syntax for the query
+    # Obtener datos de compra
     response = (
         supabase.table("PURCHASE_HISTORY")
         .select("*")
@@ -263,15 +261,48 @@ def purchases():
         .execute()
     )
 
-    # Check if there are any results
     if len(response.data) > 0:
-        # Get the purchase data
         purchase = response.data[0]
-        return render_template('purchase.html', purchase=purchase)
-    else:
-        # Handle the case when there are no results
-        return render_template('purchase.html')
 
+        # Obtener el título de la sucursal de la tabla BRANCH
+        branch_response = (
+            supabase.table("BRANCH")
+            .select("branch_title")
+            .eq("id", purchase["branch"])
+            .execute()
+        )
+
+        if len(branch_response.data) > 0:
+            branch_title = branch_response.data[0]["branch_title"]
+        else:
+            branch_title = "Sucursal Desconocida"
+
+        return render_template(
+            "purchase.html", purchase=purchase, branch_title=branch_title
+        )
+    else:
+        return render_template("purchase.html")
+
+
+@app.route("/dispatch", methods=["POST"])
+def dispatch_purchase():
+    purchase_id = request.form.get("purchase_id", type=int)
+    new_status = False
+    print(type(new_status))
+    print(purchase_id)
+
+    # Asegúrate de que la respuesta de Supabase se maneje correctamente aquí.
+    response = (
+        supabase.table("PURCHASE_HISTORY")
+        .update({"status": new_status})
+        .eq("id", purchase_id)
+        .execute()
+    )
+
+    print(response)
+
+    # Redirige al usuario de vuelta a la página de compras
+    return render_template("success_update.html")
 
 
 # CUSTOMER OXXO GAS
@@ -448,6 +479,7 @@ def buy():
     else:
         return redirect(url_for("index"))
 
+
 @app.route("/process_purchase", methods=["POST"])
 def process_purchase():
     if "user_info" in session:
@@ -477,7 +509,7 @@ def process_purchase():
 
             try:
                 # Insert the data into the Supabase table
-                
+
                 data, count = (
                     supabase.table("PURCHASE_HISTORY").insert([purchase_data]).execute()
                 )
@@ -491,24 +523,25 @@ def process_purchase():
                     try:
                         # Crear la sesión de pago con Stripe
                         checkout_session = stripe.checkout.Session.create(
-                            payment_method_types=['card', 'oxxo'],
+                            payment_method_types=["card", "oxxo"],
                             line_items=[
                                 {
-                                    'price_data': {
-                                        'currency': 'mxn',
-                                        'unit_amount': product_price,
-                                        'product_data': {
-                                            'name': "Gasolina " + gas_type,
+                                    "price_data": {
+                                        "currency": "mxn",
+                                        "unit_amount": product_price,
+                                        "product_data": {
+                                            "name": "Gasolina " + gas_type,
                                             "description": "Cobro de gasolina solicitada",
-                                            'images': ['static/gas.jpg'],
+                                            "images": ["static/gas.jpg"],
                                         },
                                     },
-                                    'quantity': 1,
+                                    "quantity": 1,
                                 },
                             ],
-                            mode='payment',
-                            success_url=url_for('success_stripe',_external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-                            #cancel_url=url_for('buy', _external=True),
+                            mode="payment",
+                            success_url=url_for("success_stripe", _external=True)
+                            + "?session_id={CHECKOUT_SESSION_ID}",
+                            # cancel_url=url_for('buy', _external=True),
                             customer_email=customer_email,
                         )
                         return redirect(checkout_session.url, code=303)
@@ -533,9 +566,11 @@ def process_purchase():
     else:
         return redirect(url_for("index"))
 
+
 @app.route("/success")
 def success():
     return render_template("success.html")
+
 
 @app.route("/success_stripe", methods=["GET"])
 def success_stripe():
@@ -552,7 +587,6 @@ def success_stripe():
         purchase_id = "Session ID not found"
 
     return render_template("success_stripe.html", purchase_id=purchase_id)
-
 
 
 if __name__ == "__main__":

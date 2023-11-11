@@ -67,11 +67,12 @@
       const captureButton = document.getElementById("captureButton");
       const cameraView = document.getElementById("cameraView");
       const photoInput = document.getElementById("photoInput");
+      let stream = null; // Guardaremos el stream aquí para poder acceder a él más tarde
 
       // Función para iniciar la cámara
       const startCamera = async () => {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({
+          stream = await navigator.mediaDevices.getUserMedia({
             video: true,
           });
           cameraView.srcObject = stream;
@@ -85,7 +86,7 @@
 
       window.onload = startCamera;
 
-      // Función para capturar la imagen
+      // Función para capturar la imagen y detener la cámara
       const captureImage = () => {
         const canvas = document.createElement("canvas");
         canvas.width = cameraView.videoWidth;
@@ -94,12 +95,18 @@
           .getContext("2d")
           .drawImage(cameraView, 0, 0, canvas.width, canvas.height);
         const photoData = canvas.toDataURL("image/jpeg");
-        console.log(photoData); // Muestra la foto codificada en base64
         photoInput.value = photoData;
+
+        // Detener todos los tracks del stream
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+        }
+        cameraView.srcObject = null; // Eliminar el stream del objeto de video
       };
 
       captureButton.addEventListener("click", captureImage);
     </script>
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
