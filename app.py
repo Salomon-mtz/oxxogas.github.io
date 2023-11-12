@@ -164,8 +164,38 @@ def submit_form():
     return render_template("register.html")
 
 
-@app.route("/compra")
+@app.route("/compra", methods=["GET", "POST"])
 def compra():
+    if request.method == "POST":
+        # Get form data from the request
+        plateid = request.form["plateid"]
+        amount = float(request.form.get("amount"))
+        liters = float(request.form.get("liters"))
+        branch = int(request.form.get("branch"))
+        payment_method = request.form["payment_method"]
+        gas_type = request.form["gas_type"]
+
+
+        # Prepare data to be inserted into the PURCHASE_HISTORY table
+        new_purchase_data = {
+            "plateid": plateid,
+            "amount": amount,
+            "liters": liters,
+            "branch": branch,
+            "payment_method": payment_method,
+            "gas_type": gas_type,
+            "status": True,  # Set status to True
+        }
+
+        # Send a POST request to the PURCHASE_HISTORY table
+        response = supabase.table("PURCHASE_HISTORY").insert([new_purchase_data]).execute()
+        print(response)
+        
+
+        return redirect(
+            url_for("compra")
+        )  # Redirect to the compra route after submission
+
     return render_template("compra.html")
 
 
@@ -207,7 +237,7 @@ def login():
     message = None
     if request.method == "POST":
         # Get the username and password from the form
-        username = request.form.get("username")
+        id = int(request.form.get("id"))
         password = request.form.get("password")
 
         try:
@@ -215,7 +245,7 @@ def login():
             vendors = (
                 supabase.from_("VENDORS")
                 .select("*")
-                .eq("username", username)
+                .eq("id", id)
                 .eq("password", password)
                 .execute()
             )
@@ -416,8 +446,10 @@ def master():
             supabase.table("PURCHASE_HISTORY")
             .select("*")
             .eq("plateid", session["user_info"]["plateid"])
+            .order("created_at.desc")
             .execute()
         )
+
         data = response.data
         fuel_data = fuel.data
         reciepts_data = reciepts.data
