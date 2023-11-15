@@ -21,6 +21,8 @@ import qrcode
 from gotrue.types import User
 import stripe
 
+from twilio.rest import Client
+
 
 app = Flask(__name__)
 app.static_folder = "static"
@@ -70,6 +72,14 @@ key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 supabase: Client = create_client(url, key)
 
 stripe.api_key = "sk_test_51O9tjGJJgeLIT5WE5vjn0nzYZaCIqb7mYxjS7Mzu3yEpYcyWV47N5DrLDTLGjXi9OQwpEbK7UtIPo5npy0pXSLQj00xGEG2ZhI"
+
+
+# Your Twilio Account SID and Auth Token
+TWILIO_ACCOUNT_SID = "ACc2ef00cc9fd26b9c1ea712d8d490ab0c"
+TWILIO_AUTH_TOKEN = "53b423ee8c6c75a344f78df2f9081fc8"
+
+# Your Twilio phone number (this is the number provided by Twilio)
+TWILIO_PHONE_NUMBER = "+13344014858"
 
 
 @app.route("/oci", methods=["GET", "POST"])
@@ -175,7 +185,6 @@ def compra():
         payment_method = request.form["payment_method"]
         gas_type = request.form["gas_type"]
 
-
         # Prepare data to be inserted into the PURCHASE_HISTORY table
         new_purchase_data = {
             "plateid": plateid,
@@ -188,9 +197,10 @@ def compra():
         }
 
         # Send a POST request to the PURCHASE_HISTORY table
-        response = supabase.table("PURCHASE_HISTORY").insert([new_purchase_data]).execute()
+        response = (
+            supabase.table("PURCHASE_HISTORY").insert([new_purchase_data]).execute()
+        )
         print(response)
-        
 
         return redirect(
             url_for("compra")
@@ -294,24 +304,53 @@ def purchases():
     if len(response.data) > 0:
         purchase = response.data[0]
 
-        # Obtener el título de la sucursal de la tabla BRANCH
-        branch_response = (
-            supabase.table("BRANCH")
-            .select("branch_title")
-            .eq("id", purchase["branch"])
-            .execute()
+        # Obtener el teléfono del cliente de la tabla CLIENTS
+        client_response = (
+            supabase.table("CLIENTS").select("phone").eq("plateid", plateid).execute()
         )
 
-        if len(branch_response.data) > 0:
-            branch_title = branch_response.data[0]["branch_title"]
+        if len(client_response.data) > 0:
+            phone_number = client_response.data[0]["phone"]
+
+            # Aquí deberías enviar un mensaje de texto al número de teléfono
+            send_text_message(phone_number, "Tu mensaje aquí")
+
+            # Continuar con el resto del código
+
+            # Obtener el título de la sucursal de la tabla BRANCH
+            branch_response = (
+                supabase.table("BRANCH")
+                .select("branch_title")
+                .eq("id", purchase["branch"])
+                .execute()
+            )
+
+            if len(branch_response.data) > 0:
+                branch_title = branch_response.data[0]["branch_title"]
+            else:
+                branch_title = "Sucursal Desconocida"
+
+            return render_template(
+                "purchase.html", purchase=purchase, branch_title=branch_title
+            )
         else:
-            branch_title = "Sucursal Desconocida"
-
-        return render_template(
-            "purchase.html", purchase=purchase, branch_title=branch_title
-        )
+            return render_template("purchase.html", error="Cliente no encontrado")
     else:
-        return render_template("purchase.html")
+        return render_template("purchase.html", error="Compra no encontrada")
+
+
+def send_text_message(phone_number, message):
+    # Initialize Twilio client
+    twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+    try:
+        # Send SMS using Twilio
+        twilio_client.messages.create(
+            body=message, from_=TWILIO_PHONE_NUMBER, to=phone_number
+        )
+        print(f"Message sent successfully to {phone_number}")
+    except Exception as e:
+        print(f"Error sending message to {phone_number}: {str(e)}")
 
 
 @app.route("/dispatch", methods=["POST"])
