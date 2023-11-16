@@ -24,7 +24,7 @@ import stripe
 from twilio.rest import Client
 
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates")
 app.static_folder = "static"
 app.debug = True
 app.secret_key = os.urandom(24)

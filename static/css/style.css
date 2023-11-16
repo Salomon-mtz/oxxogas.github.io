@@ -1,5 +1,10 @@
-body{
-    font-family: "Poppins";
+/* Use Google Fonts CDN for Poppins with multiple weights */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* Apply the Poppins font to the body */
+body {
+    font-family: "Poppins", sans-serif;
+    /* Use a fallback font (like sans-serif) in case Poppins is not available */
 }
 
 nav{
