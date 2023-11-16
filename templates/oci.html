@@ -63,6 +63,8 @@
       <p>Oxxo Gas Rewards</p>
     </footer>
 
+    <!-- ... (Your HTML code) ... -->
+
     <script>
       const captureButton = document.getElementById("captureButton");
       const cameraView = document.getElementById("cameraView");
@@ -73,7 +75,7 @@
       const startCamera = async () => {
         try {
           stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
+            video: { facingMode: "environment" }, // Use the back camera
           });
           cameraView.srcObject = stream;
         } catch (error) {
@@ -106,6 +108,8 @@
 
       captureButton.addEventListener("click", captureImage);
     </script>
+
+    <!-- ... (Your HTML code) ... -->
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
