@@ -84,21 +84,24 @@ TWILIO_PHONE_NUMBER = "+13344014858"
 
 @app.route("/oci", methods=["GET", "POST"])
 def ociPlate():
-    if request.method == "POST":
-        photo_data = request.form.get("photo")
+    if "vendor_info" in session:
+        if request.method == "POST":
+            photo_data = request.form.get("photo")
 
-        # Remove the base64 image prefix if present
-        prefix = "data:image/jpeg;base64,"
-        if photo_data.startswith(prefix):
-            photo_data = photo_data[len(prefix) :]
+            # Remove the base64 image prefix if present
+            prefix = "data:image/jpeg;base64,"
+            if photo_data.startswith(prefix):
+                photo_data = photo_data[len(prefix) :]
 
-        # Process the image using OCI AI Services
-        plate_text = analyze_image(photo_data)
+            # Process the image using OCI AI Services
+            plate_text = analyze_image(photo_data)
 
-        # Redirect to the purchases route with plate_text as a parameter
-        return redirect(url_for("purchases", plateid=plate_text))
+            # Redirect to the purchases route with plate_text as a parameter
+            return redirect(url_for("purchases", plateid=plate_text))
 
-    return render_template("oci.html")
+        return render_template("oci.html")
+    else:
+        return redirect(url_for("login"))
 
 
 def analyze_image(image_data_base64_str):
@@ -119,16 +122,26 @@ def analyze_image(image_data_base64_str):
 
     # Assuming the API response can be accessed like this; may require adjustment based on actual response format
     lines = analyze_image_response.data.image_text.lines
+    print(lines)
+
+    text_value = "No se detectó texto en la imagen"
+
     if lines:
-        text_value = lines[0].text
-    else:
-        text_value = "No se detectó texto en la imagen"
+        for line in lines:
+            if "-" in line.text:
+                text_value = line.text.replace("-", "")
+                break
+
     return text_value
+
 
 
 @app.route("/register")
 def register():
-    return render_template("register.html")
+    if "vendor_info" in session:
+        return render_template("register.html")
+    else:
+        return redirect(url_for("login"))
 
 
 @app.route("/submit", methods=["POST"])
@@ -141,9 +154,9 @@ def submit_form():
         last_name = request.form.get("last_name")
         sex = request.form.get("sex")
         age = request.form.get("age")
-        phone = request.form.get("phone")
+        raw_phone = request.form.get("phone")
         email = request.form.get("email")
-
+        phone = "+52" + raw_phone
         # Create a dictionary with the data
         customer_data = {
             "plateid": plateid,
@@ -176,48 +189,54 @@ def submit_form():
 
 @app.route("/compra", methods=["GET", "POST"])
 def compra():
-    if request.method == "POST":
-        # Get form data from the request
-        plateid = request.form["plateid"]
-        amount = float(request.form.get("amount"))
-        liters = float(request.form.get("liters"))
-        branch = int(request.form.get("branch"))
-        payment_method = request.form["payment_method"]
-        gas_type = request.form["gas_type"]
+    if "vendor_info" in session:
+        if request.method == "POST":
+            # Get form data from the request
+            plateid = request.form["plateid"]
+            amount = float(request.form.get("amount"))
+            liters = float(request.form.get("liters"))
+            branch = int(request.form.get("branch"))
+            payment_method = request.form["payment_method"]
+            gas_type = request.form["gas_type"]
 
-        # Prepare data to be inserted into the PURCHASE_HISTORY table
-        new_purchase_data = {
-            "plateid": plateid,
-            "amount": amount,
-            "liters": liters,
-            "branch": branch,
-            "payment_method": payment_method,
-            "gas_type": gas_type,
-            "status": True,  # Set status to True
-        }
+            # Prepare data to be inserted into the PURCHASE_HISTORY table
+            new_purchase_data = {
+                "plateid": plateid,
+                "amount": amount,
+                "liters": liters,
+                "branch": branch,
+                "payment_method": payment_method,
+                "gas_type": gas_type,
+                "status": True,  # Set status to True
+            }
 
-        # Send a POST request to the PURCHASE_HISTORY table
-        response = (
-            supabase.table("PURCHASE_HISTORY").insert([new_purchase_data]).execute()
-        )
-        print(response)
+            # Send a POST request to the PURCHASE_HISTORY table
+            response = (
+                supabase.table("PURCHASE_HISTORY").insert([new_purchase_data]).execute()
+            )
+            print(response)
 
-        return redirect(
-            url_for("compra")
-        )  # Redirect to the compra route after submission
+            return redirect(
+                url_for("compra")
+            )  # Redirect to the compra route after submission
 
-    return render_template("compra.html")
+        return render_template("compra.html")
+    else:
+        return redirect(url_for("login"))
 
 
 @app.route("/branch")
 def branches():
-    url: str = "https://rafdgizljnzrnmfguogm.supabase.co"
-    key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhZmRnaXpsam56cm5tZmd1b2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTgzNjU0OTAsImV4cCI6MjAxMzk0MTQ5MH0.7_0lzFml9UgLJ6m4nDCs3IhYam1ofa0FoCSYkpTm2VM"
-    supabase: Client = create_client(url, key)
-    response = supabase.table("BRANCH").select("*").execute()
-    print(response)
-    data = response.data
-    return render_template("branch.html", data=data)
+    if "vendor_info" in session:
+        url: str = "https://rafdgizljnzrnmfguogm.supabase.co"
+        key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhZmRnaXpsam56cm5tZmd1b2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTgzNjU0OTAsImV4cCI6MjAxMzk0MTQ5MH0.7_0lzFml9UgLJ6m4nDCs3IhYam1ofa0FoCSYkpTm2VM"
+        supabase: Client = create_client(url, key)
+        response = supabase.table("BRANCH").select("*").execute()
+        print(response)
+        data = response.data
+        return render_template("branch.html", data=data)
+    else:
+        return redirect(url_for("login"))
 
 
 ITEMS_PER_PAGE = 20  # or any other number you'd like
@@ -226,20 +245,23 @@ ITEMS_PER_PAGE = 20  # or any other number you'd like
 @app.route("/datos")
 @app.route("/datos/page/<int:page>")
 def datos(page=1):
-    start = (page - 1) * ITEMS_PER_PAGE
-    end = start + ITEMS_PER_PAGE - 1
-    response = supabase.table("CLIENTS").select("*").range(start, end).execute()
-    total_items = (
-        supabase.table("CLIENTS").select("plateid", count="exact").execute().count
-    )  # Assuming 'id' is a column in your table
-    total_pages = (
-        total_items + ITEMS_PER_PAGE - 1
-    ) // ITEMS_PER_PAGE  # Ceiling division
+    if "vendor_info" in session:
+        start = (page - 1) * ITEMS_PER_PAGE
+        end = start + ITEMS_PER_PAGE - 1
+        response = supabase.table("CLIENTS").select("*").range(start, end).execute()
+        total_items = (
+            supabase.table("CLIENTS").select("plateid", count="exact").execute().count
+        )  # Assuming 'id' is a column in your table
+        total_pages = (
+            total_items + ITEMS_PER_PAGE - 1
+        ) // ITEMS_PER_PAGE  # Ceiling division
 
-    data = response.data
-    return render_template(
-        "datos.html", data=data, current_page=page, total_pages=total_pages
-    )
+        data = response.data
+        return render_template(
+            "datos.html", data=data, current_page=page, total_pages=total_pages
+        )
+    else:
+        return redirect(url_for("login"))
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -264,80 +286,86 @@ def login():
 
             # Check if a matching vendor was found
             if vendors.data and len(vendors.data) == 1:
-                # Successful login, show a success alert
-                session["vendor_info"] = {
+                # Successful login, store vendor information in the session
+                vendor_info = {
                     "username": vendors_data[0]["username"],
                     "id": vendors_data[0]["id"],
                     "branch_id": vendors_data[0]["branch_id"],
                 }
+                session["vendor_info"] = vendor_info
+
                 print("Login successful!", "success")
                 message = "Inicio exitoso!"
-                return render_template("register.html", message=message)
+
+                # Redirect to the purchases page or another appropriate route
+                return redirect(url_for("purchases"))
             else:
                 # Invalid credentials, show an error alert
                 print("Invalid username or password", "danger")
                 message = "Usuario o contraseña incorrectos"
-                return render_template("login.html", message=message)
         except Exception as e:
             # Handle the query error, show an error alert
             print(f"Error querying the database: {str(e)}")
             message = "Error al consultar la base de datos"
-            return render_template("login.html", message=message)
 
-    return render_template("login.html")
+    return render_template("login.html", message=message)
 
 
 @app.route("/purchases")
 def purchases():
-    # Obtener el plateid del parámetro de consulta
-    plateid = request.args.get("plateid", "DEFAULT_PLATE_ID")
+    if "vendor_info" in session:
+        # Obtener el plateid del parámetro de consulta
+        plateid = request.args.get("plateid", "DEFAULT_PLATE_ID")
+        branch_id = session['vendor_info']['branch_id']
 
-    # Obtener datos de compra
-    response = (
-        supabase.table("PURCHASE_HISTORY")
-        .select("*")
-        .eq("plateid", plateid)
-        .eq("status", True)
-        .execute()
-    )
-
-    if len(response.data) > 0:
-        purchase = response.data[0]
-
-        # Obtener el teléfono del cliente de la tabla CLIENTS
-        client_response = (
-            supabase.table("CLIENTS").select("phone").eq("plateid", plateid).execute()
+        # Obtener datos de compra
+        response = (
+            supabase.table("PURCHASE_HISTORY")
+            .select("*")
+            .eq("plateid", plateid)
+            .eq("status", True)
+            .eq("branch", branch_id)
+            .execute()
         )
 
-        if len(client_response.data) > 0:
-            phone_number = client_response.data[0]["phone"]
+        if len(response.data) > 0:
+            purchase = response.data[0]
 
-            # Aquí deberías enviar un mensaje de texto al número de teléfono
-            send_text_message(phone_number, "Tu mensaje aquí")
-
-            # Continuar con el resto del código
-
-            # Obtener el título de la sucursal de la tabla BRANCH
-            branch_response = (
-                supabase.table("BRANCH")
-                .select("branch_title")
-                .eq("id", purchase["branch"])
-                .execute()
+            # Obtener el teléfono del cliente de la tabla CLIENTS
+            client_response = (
+                supabase.table("CLIENTS").select("phone").eq("plateid", plateid).execute()
             )
 
-            if len(branch_response.data) > 0:
-                branch_title = branch_response.data[0]["branch_title"]
+            if len(client_response.data) > 0:
+                phone_number = client_response.data[0]["phone"]
+
+                # Aquí deberías enviar un mensaje de texto al número de teléfono
+                send_text_message(phone_number, "Tu mensaje aquí")
+
+                # Continuar con el resto del código
+
+                # Obtener el título de la sucursal de la tabla BRANCH
+                branch_response = (
+                    supabase.table("BRANCH")
+                    .select("branch_title")
+                    .eq("id", purchase["branch"])
+                    .execute()
+                )
+
+                if len(branch_response.data) > 0:
+                    branch_title = branch_response.data[0]["branch_title"]
+                else:
+                    branch_title = "Sucursal Desconocida"
+
+                return render_template(
+                    "purchase.html", purchase=purchase, branch_title=branch_title
+                )
             else:
-                branch_title = "Sucursal Desconocida"
-
-            return render_template(
-                "purchase.html", purchase=purchase, branch_title=branch_title
-            )
+                return render_template("purchase.html", error="Cliente no encontrado")
         else:
-            return render_template("purchase.html", error="Cliente no encontrado")
-    else:
-        return render_template("purchase.html", error="Compra no encontrada")
-
+            return render_template("purchase.html", error="Compra no encontrada")
+    else: 
+        return redirect(url_for("login"))
 
 def send_text_message(phone_number, message):
     # Initialize Twilio client
@@ -410,6 +438,7 @@ def index():
                 "last_name": user_data[0]["last_name"],
                 "phone": user_data[0]["phone"],
                 "email": user_data[0]["email"],
+                "client_type": user_data[0]["client_type"],
             }
             print(session["user_info"])
             return redirect(url_for("master"))
@@ -435,9 +464,10 @@ def signup_form():
         last_name = request.form.get("last_name")
         sex = request.form.get("sex")
         age = request.form.get("age")
-        phone = request.form.get("phone")
+        raw_phone = request.form.get("phone")
         email = request.form.get("email")
         password = request.form.get("password")
+        phone = "+52" + raw_phone
 
         # Create a dictionary with the data
         client_data = {
@@ -479,8 +509,12 @@ def master():
         url: str = "https://rafdgizljnzrnmfguogm.supabase.co"
         key: str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhZmRnaXpsam56cm5tZmd1b2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTgzNjU0OTAsImV4cCI6MjAxMzk0MTQ5MH0.7_0lzFml9UgLJ6m4nDCs3IhYam1ofa0FoCSYkpTm2VM"
         supabase: Client = create_client(url, key)
+        user_info = session["user_info"]
+        client_type = user_info["client_type"]
+        plate_number = user_info["plateid"]
         response = supabase.table("BRANCH").select("*").execute()
         fuel = supabase.table("FUEL").select("*").execute()
+        promotions = supabase.table("PROMOTIONS").select("*").eq("client_type",client_type).execute()
         reciepts = (
             supabase.table("PURCHASE_HISTORY")
             .select("*")
@@ -492,9 +526,10 @@ def master():
         data = response.data
         fuel_data = fuel.data
         reciepts_data = reciepts.data
+        promotions_data = promotions.data
         print(fuel_data)
         return render_template(
-            "master.html", data=data, fuel_data=fuel_data, reciepts_data=reciepts_data
+            "master.html", data=data, fuel_data=fuel_data, reciepts_data=reciepts_data, promotions_data=promotions_data
         )
     else:
         return redirect(url_for("index"))

@@ -24,6 +24,8 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
     />
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+
     <style>
       body {
         display: flex;
@@ -115,6 +117,10 @@
         font-size: 14px;
       }
       .locations {
+        padding-bottom: 5rem;
+        position: inherit;
+      }
+      .promotions {
         padding-bottom: 5rem;
         position: inherit;
       }
@@ -245,8 +251,72 @@
 
       <div class="tab-content" id="tab2">
         <!-- Content for Tab 2 -->
-        <h2>Tab 2 Content</h2>
-        <p>This is the content for Tab 2.</p>
+        <div class="promotions">
+          <h1>Canjea tus promociones</h1>
+          <div class="row" style="margin: 0 0 0 0;">
+            {% for promotion in promotions_data %}
+            <div class="col-sm-12 col-md-12 col-lg-12">
+              <div class="card mb-4">
+                <div class="card-body">
+                  <h5 class="card-title">{{ promotion['promo_name'] }}</h5>
+                  <p class="card-text">{{ promotion['promo_description'] }}</p>
+                  <button
+                    type="button"
+                    class="btn btn-warning"
+                    onclick="showQR('{{ promotion['id'] }}', '{{ promotion['promo_name'] }}')"
+                  >
+                    Ver QR
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- QR Modal -->
+      <div
+        class="modal fade"
+        id="qrModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="qrModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="qrModalLabel">
+                Código QR - <span id="qrPromoName"></span>
+              </h5>
+              <button
+                type="button"
+                class="close"
+                data-dismiss="modal"
+                aria-label="Close"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div
+              class="modal-body text-center"
+              id="qrCodeContainer"
+              style="display: flex; justify-content: center"
+            >
+              <!-- QR code will be dynamically added here -->
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-dismiss="modal"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="tab-content" id="tab3">
         <!-- Content for Tab 3 -->
@@ -321,6 +391,37 @@
 
       // Initially, display the first tab (you can choose a different default tab)
       openTab("tab1");
+    </script>
+
+    <script>
+      function showQR(promoId, promoName) {
+        // Generate a random 32-digit number
+        var random32DigitNumber = generateRandom32DigitNumber();
+
+        // Clear previous QR code
+        document.getElementById("qrCodeContainer").innerHTML = "";
+
+        // Set the promo name in the modal
+        document.getElementById("qrPromoName").innerText = promoName;
+
+        // Create a new QR code with the random number
+        var qrcode = new QRCode(document.getElementById("qrCodeContainer"), {
+          text: random32DigitNumber,
+          width: 128,
+          height: 128,
+        });
+
+        // Show the modal
+        $("#qrModal").modal("show");
+      }
+
+      function generateRandom32DigitNumber() {
+        var random32DigitNumber = "";
+        for (var i = 0; i < 32; i++) {
+          random32DigitNumber += Math.floor(Math.random() * 10);
+        }
+        return random32DigitNumber;
+      }
     </script>
   </body>
 </html>

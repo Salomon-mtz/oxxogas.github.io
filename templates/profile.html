@@ -28,12 +28,11 @@
       }
 
       .profile-info {
-        padding: 20px;
+        padding: 15px;
         border-radius: 10px;
       }
 
       .qr-code {
-        margin-top: 20px;
         display: flex;
         justify-content: center;
       }
@@ -83,6 +82,10 @@
         <h2>
           Número de Teléfono:
           <p>{{ session['user_info']['phone'] }}</p>
+        </h2>
+        <h2>
+          Tipo de Cliente:
+          <p>{{ session['user_info']['client_type'] }}</p>
         </h2>
       </div>
       <!-- QR Code -->
