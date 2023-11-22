@@ -340,7 +340,7 @@ def purchases():
                 phone_number = client_response.data[0]["phone"]
 
                 # Aquí deberías enviar un mensaje de texto al número de teléfono
-                send_text_message(phone_number, "Tu mensaje aquí")
+                send_text_message(phone_number, "Revisa tus promociones en: http://127.0.0.1/main en la pestana de promociones OXXO GAS")
 
                 # Continuar con el resto del código
 
