@@ -14,14 +14,22 @@ import oci
 from oci.ai_anomaly_detection.models import DetectAnomaliesDetails
 import postgrest
 from supabase import create_client, Client
-
 from io import BytesIO
 import qrcode
 from gotrue.types import User
 import stripe
-
 from twilio.rest import Client
-
+from tensorflow.keras.models import load_model
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import cv2
+import numpy as np
+import pytesseract
+pytesseract.pytesseract.tesseract_cmd = r'/opt/homebrew/bin/tesseract'
+import base64
+from PIL import Image
+from io import BytesIO
+import re
 
 app = Flask(__name__, template_folder="templates")
 app.static_folder = "static"
@@ -80,30 +88,50 @@ TWILIO_AUTH_TOKEN = "53b423ee8c6c75a344f78df2f9081fc8"
 # Your Twilio phone number (this is the number provided by Twilio)
 TWILIO_PHONE_NUMBER = "+13344014858"
 
+model_path = "/Users/salomon/Desktop/oxxogas.github.io/model_checkpoint.h5"
+model = load_model(model_path)
 
-@app.route("/oci", methods=["GET", "POST"])
-def ociPlate():
-    if "vendor_info" in session:
-        if request.method == "POST":
-            photo_data = request.form.get("photo")
+def process_base64_image(photo_data):
+    if 'base64,' in photo_data:
+        photo_data = photo_data.split('base64,')[1]
 
-            # Remove the base64 image prefix if present
-            prefix = "data:image/jpeg;base64,"
-            if photo_data.startswith(prefix):
-                photo_data = photo_data[len(prefix) :]
+    image_data = base64.b64decode(photo_data)
+    image = Image.open(BytesIO(image_data))
+    image = np.array(image)  # Convert PIL Image to numpy array
 
-            # Process the image using OCI AI Services
-            plate_text = analyze_image(photo_data)
+    if image is None or not hasattr(image, 'shape'):
+        raise ValueError("The image is not loaded correctly.")
 
-            # Redirect to the purchases route with plate_text as a parameter
-            return redirect(url_for("purchases", plateid=plate_text))
+    return image
 
-        return render_template("oci.html")
-    else:
-        return redirect(url_for("login"))
+def process_image(image):
+    # Check if the image is a numpy array and not None
+    if image is None or not isinstance(image, np.ndarray):
+        raise ValueError("The input is not a valid numpy array.")
 
+    # Check if the image is empty
+    if image.size == 0:
+        raise ValueError("The input array is empty.")
+
+    # Print the shape of the image for debugging
+    print(f"Image shape: {image.shape}")
+
+    # Check for grayscale and convert to 3 channels if needed
+    if len(image.shape) == 2:
+        image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
+    resized_image = cv2.resize(image, (224, 224))
+    return resized_image
+
+def perform_ocr_tesseract(cropped_image):
+    # Convert to grayscale
+    gray = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
+    # Apply OCR using Tesseract
+    text = pytesseract.image_to_string(gray, config='--psm 11')
+    return text.strip()
 
 def analyze_image(image_data_base64_str):
+    # Perform OCR using OCI AI Vision
     analyze_image_response = ai_vision_client.analyze_image(
         analyze_image_details=oci.ai_vision.models.AnalyzeImageDetails(
             features=[
@@ -112,26 +140,47 @@ def analyze_image(image_data_base64_str):
                 )
             ],
             image=oci.ai_vision.models.InlineImageDetails(
-                data=image_data_base64_str,  # Pass the base64 string directly
+                data=image_data_base64_str
             ),
-            compartment_id="ocid1.tenancy.oc1..aaaaaaaas244yut7vrorqgsz4jf3vs5dd7nl7tlcreo5bhuc52ddowy6q5mq",
+            compartment_id="ocid1.tenancy.oc1..aaaaaaaas244yut7vrorqgsz4jf3vs5dd7nl7tlcreo5bhuc52ddowy6q5mq"
         ),
-        opc_request_id="XTOOOGSRULY7TEKOXIY1",
+        opc_request_id="XTOOOGSRULY7TEKOXIY1"
     )
 
-    # Assuming the API response can be accessed like this; may require adjustment based on actual response format
+    # Process the OCI response
     lines = analyze_image_response.data.image_text.lines
-    print(lines)
+    if not lines:
+        return "No text detected"
 
-    text_value = "No se detectó texto en la imagen"
+    # Regular expression to match the license plate pattern
+    plate_pattern = re.compile(r'\b[A-Z]{3}-\d{2}-\d{2}\b')
 
-    if lines:
-        for line in lines:
-            if "-" in line.text:
-                text_value = line.text.replace("-", "")
-                break
+    for line in lines:
+        match = plate_pattern.search(line.text)
+        if match:
+            # Remove dashes and return the formatted license plate
+            return match.group().replace("-", "")
 
-    return text_value
+    return "License plate not found"
+
+@app.route("/oci", methods=["GET", "POST"])
+def ociPlate():
+    if "vendor_info" in session:
+        if request.method == "POST":
+            photo_data = request.form.get("photo")
+            base64_photo_data = photo_data.split('base64,')[1] if 'base64,' in photo_data else photo_data
+
+            image = process_base64_image(photo_data)
+            cropped_image = process_image(image)
+
+            tesseract_text = perform_ocr_tesseract(cropped_image)
+            plate_text = analyze_image(base64_photo_data)  # Pass the base64-encoded string
+            print("placaaaaa:", plate_text)
+
+            return redirect(url_for("purchases", plateid=plate_text))
+        return render_template("oci.html")
+    else:
+        return redirect(url_for("login"))
 
 
 
