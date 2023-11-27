@@ -30,6 +30,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 import re
+import io
 
 app = Flask(__name__, template_folder="templates")
 app.static_folder = "static"
@@ -91,44 +92,89 @@ TWILIO_PHONE_NUMBER = "+13344014858"
 model_path = "/Users/salomon/Desktop/oxxogas.github.io/model_checkpoint.h5"
 model = load_model(model_path)
 
+def save_image(image_array, filename="static/plate.png"):
+    # Crear el directorio si no existe
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+    # Convertir el array de NumPy a una imagen PIL y guardarla
+    pil_image = Image.fromarray(image_array.astype('uint8'), 'RGB')
+    pil_image.save(filename)
+
 def process_base64_image(photo_data):
     if 'base64,' in photo_data:
         photo_data = photo_data.split('base64,')[1]
 
     image_data = base64.b64decode(photo_data)
     image = Image.open(BytesIO(image_data))
-    image = np.array(image)  # Convert PIL Image to numpy array
-
-    if image is None or not hasattr(image, 'shape'):
-        raise ValueError("The image is not loaded correctly.")
-
+    image = np.array(image)  # Convertir a array de NumPy
+    
+    # Guardar la imagen
+    save_image(image, "static/plate.png")
     return image
 
 def process_image(image):
-    # Check if the image is a numpy array and not None
-    if image is None or not isinstance(image, np.ndarray):
-        raise ValueError("The input is not a valid numpy array.")
-
-    # Check if the image is empty
-    if image.size == 0:
-        raise ValueError("The input array is empty.")
-
-    # Print the shape of the image for debugging
-    print(f"Image shape: {image.shape}")
-
-    # Check for grayscale and convert to 3 channels if needed
-    if len(image.shape) == 2:
-        image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-
     resized_image = cv2.resize(image, (224, 224))
-    return resized_image
+    resized_image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2RGB)
+    predicted_bbox = model.predict(np.expand_dims(resized_image, axis=0))[0]
+    predicted_bbox_denormalized = predicted_bbox * np.array([224, 224, 224, 224])
+    # Factor de escala para hacer el recorte más grande
+    scale_factor = 1.3  # Puedes ajustar este valor según tus necesidades
+    # Llamada a la función para recortar la imagen con dimensiones más grandes
+    cropped_image = crop_image(image, predicted_bbox, scale_factor)
+
+    placa = []
+    image1 = cropped_image
+    gray = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+    gray = cv2.blur(gray,(3,3))
+    canny = cv2.Canny(gray,150,200)
+    canny = cv2.dilate(canny,None,iterations=1)
+    cnts,_ = cv2.findContours(canny,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+
+    for c in cnts:
+        area = cv2.contourArea(c)
+        x,y,w,h = cv2.boundingRect(c)
+        epsilon = 0.09*cv2.arcLength(c,True)
+        approx = cv2.approxPolyDP(c,epsilon,True)
+
+    if len(approx)==4 and area>5000:
+        #cv2.drawContours(image,[approx],0,(0,255,0),3)
+        aspect_ratio = float(w)/h
+        cropped_image = image1[y:y + h, x:x + w]
+
+    save_image(cropped_image, "static/cropped_plate.png")
+    return cropped_image
 
 def perform_ocr_tesseract(cropped_image):
-    # Convert to grayscale
     gray = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
-    # Apply OCR using Tesseract
     text = pytesseract.image_to_string(gray, config='--psm 11')
     return text.strip()
+
+def crop_image(image, bbox, scale_factor):
+    h, w, _ = image.shape
+    x, y, width, height = bbox
+    x, y, width, height = int(x * w), int(y * h), int(width * w), int(height * h)
+
+    # Calcular las nuevas dimensiones de la región de interés
+    new_width = int(width * scale_factor)
+    new_height = int(height * scale_factor)
+
+    # Calcular la nueva posición de inicio para mantener el centro de la región de interés
+    new_x = max(0, x - (new_width - width) // 2)
+    new_y = max(0, y - (new_height - height) // 2)
+
+    # Recortar la imagen con las nuevas dimensiones
+    cropped_image = image[new_y:min(h, new_y + new_height), new_x:min(w, new_x + new_width), :]
+    return cropped_image
+
+
+def image_to_base64(image_array):
+    pil_image = Image.fromarray(image_array.astype('uint8'), 'RGB')
+    buffer = BytesIO()
+    pil_image.save(buffer, format="JPEG")
+    buffer.seek(0)
+    image_base64 = base64.b64encode(buffer.getvalue()).decode()
+    return image_base64
+
 
 def analyze_image(image_data_base64_str):
     # Perform OCR using OCI AI Vision
@@ -149,19 +195,17 @@ def analyze_image(image_data_base64_str):
 
     # Process the OCI response
     lines = analyze_image_response.data.image_text.lines
+    print(lines)
     if not lines:
         return "No text detected"
 
-    # Regular expression to match the license plate pattern
-    plate_pattern = re.compile(r'\b[A-Z]{3}-\d{2}-\d{2}\b')
+    if lines:
+        for line in lines:
+            if "-" in line.text:
+                text_value = line.text.replace("-", "")
+                break
 
-    for line in lines:
-        match = plate_pattern.search(line.text)
-        if match:
-            # Remove dashes and return the formatted license plate
-            return match.group().replace("-", "")
-
-    return "License plate not found"
+    return text_value
 
 @app.route("/oci", methods=["GET", "POST"])
 def ociPlate():
@@ -169,13 +213,16 @@ def ociPlate():
         if request.method == "POST":
             photo_data = request.form.get("photo")
             base64_photo_data = photo_data.split('base64,')[1] if 'base64,' in photo_data else photo_data
+            print("sptm",base64_photo_data)
 
             image = process_base64_image(photo_data)
             cropped_image = process_image(image)
-
             tesseract_text = perform_ocr_tesseract(cropped_image)
-            plate_text = analyze_image(base64_photo_data)  # Pass the base64-encoded string
-            print("placaaaaa:", plate_text)
+            cropped_image_base64 = image_to_base64(cropped_image)
+            plate_text = analyze_image(cropped_image_base64)
+
+            print("Texto Tesseract:", tesseract_text)
+            print("Texto OCI AI Vision:", plate_text)
 
             return redirect(url_for("purchases", plateid=plate_text))
         return render_template("oci.html")
